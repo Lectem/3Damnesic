@@ -43,5 +43,5 @@ typedef struct MovieState {
 } MovieState;
 
 
-int setup(MovieState * mv,char * filename);
+int  setup(MovieState * mv,char * filename);
 void tearup(MovieState *mv);

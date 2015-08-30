@@ -6,5 +6,6 @@
 #pragma once
 
 #include "movie.h"
-int audio_open_stream(MovieState * mv);
+
+int  audio_open_stream(MovieState * mv);
 void audio_close_stream(MovieState * mvS);
