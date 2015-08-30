@@ -8,6 +8,7 @@
 *.mp4
 cbuild
 build*
+perfresults.txt
 
 ### C template
 # Object files
