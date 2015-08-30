@@ -53,6 +53,7 @@ At the moment, you have to specify the file path in the main.c file at compilati
 * File Browser and Menu
 * Subtitles
 * More formats and track selection
+* Use the MVD service for the new3ds
 
 #Random informations
 
