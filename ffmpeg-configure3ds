@@ -1,0 +1,43 @@
+#!/bin/sh
+
+export PATH=$DEVKITARM/bin:$PATH
+export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
+
+./configure --prefix=$DEVKITPRO/portlibs/3ds/ \
+--enable-cross-compile \
+--cross-prefix=arm-none-eabi- \
+--cc=arm-none-eabi-gcc \
+--dep-cc=arm-none-eabi-gcc \
+--cxx=arm-none-eabi-g++ \
+--ld=arm-none-eabi-g++ \
+--as=arm-none-eabi-g++ \
+--ar=arm-none-eabi-gcc-ar \
+--ranlib=arm-none-eabi-gcc-ranlib \
+--disable-shared \
+--disable-runtime-cpudetect \
+--disable-armv5te \
+--disable-programs \
+--disable-doc \
+--disable-everything \
+--enable-decoder=mpeg4,h264,aac,ac3,mp3 \
+--enable-demuxer=mov,h264 \
+--enable-filter=rotate,transpose \
+--enable-protocol=file \
+--enable-static \
+--enable-small \
+--arch=armv6k \
+--disable-armv6t2 \
+--disable-neon \
+--target-os=none \
+--extra-cflags=" -DARM11 -D_3DS -mword-relocations -fomit-frame-pointer -ffast-math $ARCH" \
+--extra-cxxflags=" -DARM11 -D_3DS -mword-relocations -fomit-frame-pointer -ffast-math -fno-rtti -fno-exceptions -std=gnu++11 $ARCH" \
+--extra-ldflags=" -specs=3dsx.specs $ARCH -L$DEVKITARM/lib  -L$DEVKITPRO/libctru/lib  -L$DEVKITPRO/portlibs/3ds/lib -lctru " \
+--disable-bzlib \
+--disable-iconv \
+--disable-lzma \
+--disable-sdl \
+--disable-securetransport \
+--disable-xlib \
+--disable-zlib
+#--enable-lto
+
