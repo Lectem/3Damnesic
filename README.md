@@ -1,4 +1,4 @@
-#3Damnesic 
+#3Damnesic [![Join the chat at https://gitter.im/Lectem/3dsdev](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Lectem/3dsdev)
 
 A Work In Progress media player for 3ds using ffmpeg !
 
