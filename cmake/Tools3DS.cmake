@@ -25,6 +25,21 @@
 #
 # This version will produce the SMDH with tha values passed as arguments. Tha APP_ICON is optional and follows the same rule as the other version of `add_3dsx_target`.
 #
+# add_cia_target(target RSF IMAGE SOUND [APP_TITLE APP_DESCRIPTION APP_AUTHOR [APP_ICON]])
+# ^^^^^^^^^^^^^^
+#
+# Same as add_3dsx_target but for CIA files.
+#
+# RSF is the .rsf file to be given to makerom.
+# IMAGE is either a .png or a cgfximage file.
+# SOUND is either a .wav or a cwavaudio file.
+#
+# add_netload_target(name target_or_file)
+# ^^^^^^^^^^^^^^^^^^
+#
+# Adds a target `name` that sends a .3dsx using the homebrew launcher netload system (3dslink).
+# target_or_file is either the name of a target or of file.
+#
 # add_binary_library(target input1 [input2 ...])
 # ^^^^^^^^^^^^^^^^^^
 #
@@ -80,14 +95,16 @@ endif()
 
 get_filename_component(__tools3dsdir ${CMAKE_CURRENT_LIST_FILE} PATH) # Used to locate files to be used with configure_file
 
+message(STATUS "Looking for 3ds tools...")
+
 ##############
 ## 3DSXTOOL ##
 ##############
-if(NOT 3DSXTOOL)
-    message(STATUS "Looking for 3dsxtool...")
-    find_program(3DSXTOOL 3dsxtool ${DEVKITARM}/bin)
-    if(3DSXTOOL)
-        message(STATUS "3dsxtool: ${3DSXTOOL} - found")
+if(NOT _3DSXTOOL)
+    # message(STATUS "Looking for 3dsxtool...")
+    find_program(_3DSXTOOL 3dsxtool ${DEVKITARM}/bin)
+    if(_3DSXTOOL)
+        message(STATUS "3dsxtool: ${_3DSXTOOL} - found")
     else()
         message(WARNING "3dsxtool - not found")
     endif()
@@ -98,12 +115,55 @@ endif()
 ## SMDHTOOL ##
 ##############
 if(NOT SMDHTOOL)
-    message(STATUS "Looking for smdhtool...")
+    # message(STATUS "Looking for smdhtool...")
     find_program(SMDHTOOL smdhtool ${DEVKITARM}/bin)
     if(SMDHTOOL)
         message(STATUS "smdhtool: ${SMDHTOOL} - found")
     else()
         message(WARNING "smdhtool - not found")
+    endif()
+endif()
+
+################
+## BANNERTOOL ##
+################
+if(NOT BANNERTOOL)
+    # message(STATUS "Looking for bannertool...")
+    find_program(BANNERTOOL bannertool ${DEVKITARM}/bin)
+    if(BANNERTOOL)
+        message(STATUS "bannertool: ${BANNERTOOL} - found")
+    else()
+        message(WARNING "bannertool - not found")
+    endif()
+endif()
+
+set(FORCE_SMDHTOOL FALSE CACHE BOOL "Force the use of smdhtool instead of bannertool")
+
+#############
+## MAKEROM ##
+#############
+if(NOT MAKEROM)
+    # message(STATUS "Looking for makerom...")
+    find_program(MAKEROM makerom ${DEVKITARM}/bin)
+    if(MAKEROM)
+        message(STATUS "makerom: ${MAKEROM} - found")
+    else()
+        message(WARNING "makerom - not found")
+    endif()
+endif()
+
+
+
+#############
+##  STRIP  ##
+#############
+if(NOT STRIP)
+    # message(STATUS "Looking for strip...")
+    find_program(STRIP arm-none-eabi-strip ${DEVKITARM}/bin)
+    if(STRIP)
+        message(STATUS "strip: ${STRIP} - found")
+    else()
+        message(WARNING "strip - not found")
     endif()
 endif()
 
@@ -113,7 +173,7 @@ endif()
 ##  BIN2S  ##
 #############
 if(NOT BIN2S)
-    message(STATUS "Looking for bin2s...")
+    # message(STATUS "Looking for bin2s...")
     find_program(BIN2S bin2s ${DEVKITARM}/bin)
     if(BIN2S)
         message(STATUS "bin2s: ${BIN2S} - found")
@@ -122,11 +182,24 @@ if(NOT BIN2S)
     endif()
 endif()
 
+###############
+##  3DSLINK  ##
+###############
+if(NOT _3DSLINK)
+    # message(STATUS "Looking for 3dslink...")
+    find_program(_3DSLINK 3dslink ${DEVKITARM}/bin)
+    if(_3DSLINK)
+        message(STATUS "3dslink: ${_3DSLINK} - found")
+    else()
+        message(WARNING "3dslink - not found")
+    endif()
+endif()
+
 #############
 ## PICASSO ##
 #############
 if(NOT PICASSO_EXE)
-    message(STATUS "Looking for Picasso...")
+    # message(STATUS "Looking for Picasso...")
     find_program(PICASSO_EXE picasso ${DEVKITARM}/bin)
     if(PICASSO_EXE)
         message(STATUS "Picasso: ${PICASSO_EXE} - found")
@@ -142,7 +215,7 @@ endif()
 #############
 
 if(NOT NIHSTRO_AS)
-    message(STATUS "Looking for nihstro...")
+    # message(STATUS "Looking for nihstro...")
     find_program(NIHSTRO_AS nihstro ${DEVKITARM}/bin)
     if(NIHSTRO_AS)
         message(STATUS "nihstro: ${NIHSTRO_AS} - found")
@@ -165,6 +238,20 @@ set(SHADER_AS none CACHE STRING "The shader assembler to be used. Allowed values
 ### EXECUTABLES ###
 ###################
 
+
+function(__add_smdh target APP_TITLE APP_DESCRIPTION APP_AUTHOR APP_ICON)
+    if(BANNERTOOL AND NOT FORCE_SMDHTOOL)
+        set(__SMDH_COMMAND ${BANNERTOOL} makesmdh -s ${APP_TITLE} -l ${APP_DESCRIPTION}  -p ${APP_AUTHOR} -i ${APP_ICON} -o ${CMAKE_CURRENT_BINARY_DIR}/${target})
+    else()
+        set(__SMDH_COMMAND ${SMDHTOOL} --create ${APP_TITLE} ${APP_DESCRIPTION} ${APP_AUTHOR} ${APP_ICON} ${CMAKE_CURRENT_BINARY_DIR}/${target})
+    endif()
+    add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}
+                        COMMAND ${__SMDH_COMMAND}
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                        DEPENDS ${APP_ICON}
+                        VERBATIM
+    )
+endfunction()
 
 function(add_3dsx_target target)
     get_filename_component(target_we ${target} NAME_WE)
@@ -197,26 +284,114 @@ function(add_3dsx_target target)
                 message(FATAL_ERROR "No icon found ! Please use NO_SMDH or provide some icon.")
             endif()
         endif()
-        add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/${target_we}.3dsx ${CMAKE_BINARY_DIR}/${target_we}.smdh
-                            COMMAND ${SMDHTOOL} --create ${APP_TITLE} ${APP_DESCRIPTION} ${APP_AUTHOR} ${APP_ICON} ${CMAKE_BINARY_DIR}/${target_we}.smdh
-                            COMMAND ${3DSXTOOL} ${target} ${CMAKE_BINARY_DIR}/${target_we}.3dsx --smdh=${CMAKE_BINARY_DIR}/${target_we}.smdh
-                            DEPENDS ${target}
+        if( NOT ${target_we}.smdh)
+            __add_smdh(${target_we}.smdh ${APP_TITLE} ${APP_DESCRIPTION} ${APP_AUTHOR} ${APP_ICON})
+        endif()
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.3dsx
+                            COMMAND ${_3DSXTOOL} $<TARGET_FILE:${target}> ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.3dsx --smdh=${CMAKE_CURRENT_BINARY_DIR}/${target_we}.smdh
+                            DEPENDS ${target} ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.smdh
                             VERBATIM
         )
     else()
         message(STATUS "No smdh file will be generated")
-        add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/${target_we}.3dsx
-                            COMMAND ${3DSXTOOL} ${target} ${target_we}.3dsx
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.3dsx
+                            COMMAND ${_3DSXTOOL} $<TARGET_FILE:${target}> ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.3dsx
                             DEPENDS ${target}
-                            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                            VERBATIM
         )
     endif()
-    add_custom_target(${target}_3dsx ALL SOURCES ${CMAKE_BINARY_DIR}/${target_we}.3dsx)
+    add_custom_target(${target_we}_3dsx ALL SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.3dsx)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS "-specs=3dsx.specs")
 endfunction()
 
+function(__add_ncch_banner target IMAGE SOUND)
+    if(IMAGE MATCHES ".*\\.png$")
+        set(IMG_PARAM -i ${IMAGE})
+    else()
+        set(IMG_PARAM -ci ${IMAGE})
+    endif()
+    if(SOUND MATCHES ".*\\.wav$")
+        set(SND_PARAM -a ${SOUND})
+    else()
+        set(SND_PARAM -ca ${SOUND})
+    endif()
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}
+                        COMMAND ${BANNERTOOL} makebanner -o ${CMAKE_CURRENT_BINARY_DIR}/${target} ${IMG_PARAM} ${SND_PARAM}
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                        DEPENDS ${IMAGE} ${SOUND}
+                        VERBATIM
+    )
+endfunction()
 
-# todo : cia ? If someone can test and do it, please PR
+function(add_cia_target target RSF IMAGE SOUND )
+    get_filename_component(target_we ${target} NAME_WE)
+    if(${ARGC} GREATER 6)
+        set(APP_TITLE ${ARGV4})
+        set(APP_DESCRIPTION ${ARGV5})
+        set(APP_AUTHOR ${ARGV6})
+    endif()
+    if(${ARGC} EQUAL 8)
+        set(APP_ICON ${ARGV7})
+    endif()
+    if(NOT APP_TITLE)
+        set(APP_TITLE ${target})
+    endif()
+    if(NOT APP_DESCRIPTION)
+        set(APP_DESCRIPTION "Built with devkitARM & libctru")
+    endif()
+    if(NOT APP_AUTHOR)
+        set(APP_AUTHOR "Unspecified Author")
+    endif()
+    if(NOT APP_ICON)
+        if(EXISTS ${target}.png)
+            set(APP_ICON ${target}.png)
+        elseif(EXISTS icon.png)
+            set(APP_ICON icon.png)
+        elseif(CTRULIB)
+            set(APP_ICON ${CTRULIB}/default_icon.png)
+        else()
+            message(FATAL_ERROR "No icon found ! Please use NO_SMDH or provide some icon.")
+        endif()
+    endif()
+    if( NOT ${target_we}.smdh)
+        __add_smdh(${target_we}.smdh ${APP_TITLE} ${APP_DESCRIPTION} ${APP_AUTHOR} ${APP_ICON})
+    endif()
+    __add_ncch_banner(${target_we}.bnr ${IMAGE} ${SOUND})
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.cia
+                        COMMAND ${STRIP} -o $<TARGET_FILE:${target}>-stripped $<TARGET_FILE:${target}>
+                        COMMAND ${MAKEROM}     -f cia
+                                            -target t
+                                            -exefslogo
+                                            -o ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.cia
+                                            -elf $<TARGET_FILE:${target}>-stripped
+                                            -rsf ${RSF}
+                                            -banner ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.bnr
+                                            -icon ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.smdh
+                        DEPENDS ${target} ${RSF} ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.bnr ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.smdh
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                        VERBATIM
+    )
 
+    add_custom_target(${target_we}_cia ALL SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${target_we}.cia)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS "-specs=3dsx.specs")
+endfunction()
+
+macro(add_netload_target name target)
+    set(NETLOAD_IP "" CACHE STRING "The ip address of the 3ds when using netload.")
+    if(NETLOAD_IP)
+        set(__NETLOAD_IP_OPTION -a ${NETLOAD_IP})
+    endif()
+    if(NOT TARGET ${target})
+        message("NOT ${target}")
+        set(FILE ${target})
+    else()
+        set(FILE ${CMAKE_CURRENT_BINARY_DIR}/${target}.3dsx)
+    endif()
+    add_custom_target(${name}
+                    COMMAND ${_3DSLINK} ${FILE} ${__NETLOAD_IP_OPTION}
+                    DEPENDS  ${FILE}
+    )
+endmacro()
 
 ######################
 ### File embedding ###
@@ -238,19 +413,19 @@ macro(add_binary_library libtarget)
         string(REGEX REPLACE "[-./]" "_" __BIN_FILE_NAME ${__BIN_FILE_NAME})
 
         #Generate the header file
-        configure_file(${__tools3dsdir}/bin2s_header.h.in ${CMAKE_BINARY_DIR}/${libtarget}_include/${__BIN_FILE_NAME}.h)
+        configure_file(${__tools3dsdir}/bin2s_header.h.in ${CMAKE_CURRENT_BINARY_DIR}/${libtarget}_include/${__BIN_FILE_NAME}.h)
     endforeach()
 
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/binaries_asm)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/binaries_asm)
     # Generate the assembly file, and create the new target
-    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/binaries_asm/${libtarget}.s
-                        COMMAND ${BIN2S} ${ARGN} > ${CMAKE_BINARY_DIR}/binaries_asm/${libtarget}.s
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/binaries_asm/${libtarget}.s
+                        COMMAND ${BIN2S} ${ARGN} > ${CMAKE_CURRENT_BINARY_DIR}/binaries_asm/${libtarget}.s
                         DEPENDS ${ARGN}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     )
 
-    add_library(${libtarget} ${CMAKE_BINARY_DIR}/binaries_asm/${libtarget}.s)
-    target_include_directories(${libtarget} INTERFACE ${CMAKE_BINARY_DIR}/${libtarget}_include)
+    add_library(${libtarget} ${CMAKE_CURRENT_BINARY_DIR}/binaries_asm/${libtarget}.s)
+    target_include_directories(${libtarget} INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/${libtarget}_include)
 endmacro()
 
 macro(target_embed_file _target)
@@ -305,22 +480,22 @@ macro(add_shbin OUTPUT INPUT )
 endmacro()
 
 function(generate_shbins)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/shaders)
     foreach(__shader_file ${ARGN})
         get_filename_component(__shader_file_we ${__shader_file} NAME_WE)
         #Generate the shbin file
-        list(APPEND __SHADERS_BIN_FILES ${CMAKE_BINARY_DIR}/shaders/${__shader_file_we}.shbin)
-        add_shbin(${CMAKE_BINARY_DIR}/shaders/${__shader_file_we}.shbin ${__shader_file})
+        list(APPEND __SHADERS_BIN_FILES ${CMAKE_CURRENT_BINARY_DIR}/shaders/${__shader_file_we}.shbin)
+        add_shbin(${CMAKE_CURRENT_BINARY_DIR}/shaders/${__shader_file_we}.shbin ${__shader_file})
     endforeach()
 endfunction()
 
 function(add_shbin_library libtarget)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/shaders)
     foreach(__shader_file ${ARGN})
         get_filename_component(__shader_file_we ${__shader_file} NAME_WE)
         #Generate the shbin file
-        list(APPEND __SHADERS_BIN_FILES ${CMAKE_BINARY_DIR}/shaders/${__shader_file_we}.shbin)
-        add_shbin(${CMAKE_BINARY_DIR}/shaders/${__shader_file_we}.shbin ${__shader_file})
+        list(APPEND __SHADERS_BIN_FILES ${CMAKE_CURRENT_BINARY_DIR}/shaders/${__shader_file_we}.shbin)
+        add_shbin(${CMAKE_CURRENT_BINARY_DIR}/shaders/${__shader_file_we}.shbin ${__shader_file})
     endforeach()
     add_binary_library(${libtarget} ${__SHADERS_BIN_FILES})
 endfunction()
