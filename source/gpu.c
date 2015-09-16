@@ -297,6 +297,6 @@ void gpuRenderFrame(MovieState *mvS)
     );
 
     //Display the buffers data
-    GPU_DrawArray(GPU_TRIANGLE_FAN, sizeof(test_mesh) / sizeof(test_mesh[0]));
+    GPU_DrawArray(GPU_TRIANGLE_FAN,0, sizeof(test_mesh) / sizeof(test_mesh[0]));
 
 }
