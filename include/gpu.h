@@ -17,3 +17,4 @@ void gpuExit();
 void gpuRenderFrame(MovieState *mvS);
 
 void gpuEndFrame();
+

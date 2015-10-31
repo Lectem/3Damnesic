@@ -1,6 +1,8 @@
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
+export DEVKITPRO=/opt/devkitpro
+export DEVKITARM=/opt/devkitpro/devkitARM
 
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
@@ -39,7 +41,7 @@ APP_AUTHOR		:= Lectem
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:= 	-march=armv6k -mtune=mpcore -mfloat-abi=hard
+ARCH	:= 	-march=armv6k -mtune=mpcore -mfloat-abi=hard -std=c11
 
 CFLAGS	:=	-Wall -Os -mword-relocations \
 			-fomit-frame-pointer -ffast-math \

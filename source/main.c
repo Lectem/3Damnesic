@@ -7,6 +7,7 @@
 #include "gpu.h"
 #include "video.h"
 #include "color_converter.h"
+#include "files.h"
 
 
 void waitForStart()
@@ -70,8 +71,9 @@ int main(int argc, char *argv[])
     // Register all formats and codecs
     av_register_all();
     av_log_set_level(AV_LOG_INFO);
-
-
+    printf("Listing the files...\n");
+    initFiles();
+    printf("Done.\n");
     printf("Press start to open the file\n");
     waitForStart();
     int ret = setup(&mvS, filename);
