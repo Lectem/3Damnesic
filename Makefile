@@ -1,8 +1,8 @@
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
-export DEVKITPRO=/opt/devkitpro
-export DEVKITARM=/opt/devkitpro/devkitARM
+export DEVKITPRO=/opt/devkitpro #Netbeans on Linux only. Comment if not the same directory/unneeded.
+export DEVKITARM=/opt/devkitpro/devkitARM #Netbeans on Linux only. Comment if not in the same directory/unneeded.
 
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
