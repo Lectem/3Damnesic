@@ -37,7 +37,7 @@ typedef struct MovieState {
     AVPacket          packet;
     struct SwsContext *sws_ctx ;
     CONVERT_COLOR_METHOD convertColorMethod;
-    Y2R_ConversionParams params;
+    Y2RU_ConversionParams params;
     Handle end_event;
     bool renderGpu;
 } MovieState;

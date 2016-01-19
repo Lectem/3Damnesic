@@ -217,7 +217,8 @@ int exitColorConvertY2R(MovieState *mvS)
 
     Y2RU_StopConversion();
     Y2RU_IsBusyConversion(&is_busy);
-    return y2rExit();
+    y2rExit();
+    return 0;
 }
 
 

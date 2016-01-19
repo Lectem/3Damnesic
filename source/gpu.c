@@ -141,8 +141,8 @@ void gpuDisableEverything()
     GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
 
     GPU_SetDepthTestAndWriteMask(true, GPU_ALWAYS, GPU_WRITE_ALL);
-    GPUCMD_AddMaskedWrite(GPUREG_0062, 0x1, 0);
-    GPUCMD_AddWrite(GPUREG_0118, 0);
+    GPUCMD_AddMaskedWrite(GPUREG_EARLYDEPTH_TEST1, 0x1, 0);
+    GPUCMD_AddWrite(GPUREG_EARLYDEPTH_TEST2, 0);
 
     GPU_SetDummyTexEnv(0);
     GPU_SetDummyTexEnv(1);
@@ -218,12 +218,11 @@ void gpuEndFrame()
     //Ask the GPU to draw everything (execute the commands)
     GPU_FinishDrawing();
     GPUCMD_Finalize();
-    GPUCMD_FlushAndRun(NULL);
+    GPUCMD_FlushAndRun();
     gspWaitForP3D();//Wait for the gpu 3d processing to be done
     //Copy the GPU output buffer to the screen framebuffer
     //See http://3dbrew.org/wiki/GPU#Transfer_Engine for more details about the transfer engine
-    Result res = GX_SetDisplayTransfer(NULL, // Use ctrulib's gx command buffer
-                                       gpuFBuffer, GX_BUFFER_DIM(240, 400),
+    Result res = GX_DisplayTransfer(gpuFBuffer, GX_BUFFER_DIM(240, 400),
                                        (u32 *) gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL),
                                        GX_BUFFER_DIM(240, 400),
                                        DISPLAY_TRANSFER_FLAGS);
@@ -232,12 +231,11 @@ void gpuEndFrame()
     gfxSwapBuffersGpu();
 
     //Wait for the screen to be updated
-    gspWaitForEvent(GSPEVENT_VBlank0, false);
+    gspWaitForEvent(GSPGPU_EVENT_VBlank0, false);
     //TODO : use gspWaitForEvent(GSPEVENT_VBlank0,true); if tearing happens
 
     //Clear the screen
-    GX_SetMemoryFill(NULL,
-                     gpuFBuffer, clearColor, &gpuFBuffer[400 * 240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH,
+    GX_MemoryFill(gpuFBuffer, clearColor, &gpuFBuffer[400 * 240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH,
                      gpuDBuffer, 0x00000000, &gpuDBuffer[400 * 240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
     gspWaitForPSC0();
 

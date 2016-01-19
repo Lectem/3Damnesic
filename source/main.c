@@ -23,7 +23,7 @@ void waitForStart()
 
 void initServices()
 {
-    hidInit(NULL);
+    hidInit();
     sdmcInit();
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
