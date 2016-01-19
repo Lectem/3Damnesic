@@ -9,6 +9,7 @@
 cbuild
 build*
 perfresults.txt
+netload.bat
 
 ### C template
 # Object files
