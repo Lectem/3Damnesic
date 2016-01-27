@@ -5,14 +5,7 @@ export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
 
 ./configure --prefix=$DEVKITPRO/portlibs/3ds/ \
 --enable-cross-compile \
---cross-prefix=arm-none-eabi- \
---cc=arm-none-eabi-gcc \
---dep-cc=arm-none-eabi-gcc \
---cxx=arm-none-eabi-g++ \
---ld=arm-none-eabi-g++ \
---as=arm-none-eabi-g++ \
---ar=arm-none-eabi-gcc-ar \
---ranlib=arm-none-eabi-gcc-ranlib \
+--cross-prefix=$DEVKITARM/bin/arm-none-eabi- \
 --disable-shared \
 --disable-runtime-cpudetect \
 --disable-armv5te \
@@ -26,6 +19,7 @@ export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
 --enable-static \
 --enable-small \
 --arch=armv6k \
+--cpu=mpcore \
 --disable-armv6t2 \
 --disable-neon \
 --target-os=none \
@@ -40,4 +34,3 @@ export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
 --disable-xlib \
 --disable-zlib
 #--enable-lto
-
