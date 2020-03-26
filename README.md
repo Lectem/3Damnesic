@@ -1,16 +1,16 @@
-#3Damnesic
+# 3Damnesic (Abandoned)
 
 A Work In Progress media player for 3ds using ffmpeg !
 
-#Requirements
+# Requirements
 
 * DevkitArm
 * Latest ctrulib
 * ffmpeg compiled with the following instructions
 
-#Building 
+# Building 
 
-##FFMPEG
+## FFMPEG
 
 * Copy the ffmpeg-configure3ds script in your ffmpeg source folder
 * Open a shell/command line in ffmpeg directory
@@ -20,13 +20,13 @@ A Work In Progress media player for 3ds using ffmpeg !
 
 This will compile ffmpeg (with only a few features) with devkitArm and install it as a portlib
 
-##3Damnesic
+## 3Damnesic
 
-###With the Makefile
+### With the Makefile
 
 Simply use `make`.
 
-###With CMake
+### With CMake
 
 * `mkdir cbuild && cd cbuild`
     * On *NIX `cmake -DCMAKE_TOOLCHAIN_FILE=DevkitArm3DS.cmake ..`
@@ -35,7 +35,7 @@ Simply use `make`.
 
 More information on the [3ds-cmake](https://github.com/Lectem/3ds-cmake) repository.
 
-#Usage
+# Usage
 
 At the moment, you have to specify the file path in the main.c file at compilation time.
 
@@ -55,7 +55,7 @@ At the moment, you have to specify the file path in the main.c file at compilati
 * More formats and track selection
 * Use the MVD service for the new3ds
 
-#Random informations
+# Random informations
 
 Use a video with dimensions multiple of 8 for best performance !
 
